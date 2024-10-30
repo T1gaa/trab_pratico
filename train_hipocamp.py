@@ -21,6 +21,9 @@ from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
+import shap
+import time
+
 
 #Import training dataset
 df_train = pd.read_csv('train_radiomics_hipocamp.csv')
@@ -50,6 +53,8 @@ y = df_train['Transition']
 #BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
 
+
+pd.Series
 rf_model = RandomForestClassifier(bootstrap= False, max_depth = 2, verbose = 1)
 rf_model.fit(X_train, y_train)
 
@@ -58,6 +63,16 @@ print("Accuracy: %.2f%%" % (rf_score*100))
 
 test_predictions = rf_model.predict(df_test)
 
+#RANDOM FOREST FEATURE IMPORTANCE
+start_time = time.time()
+
+mdi_importances = pd.Series(rf_model.feature_importances_, index=X_test.columns)
+
+elapsed_time = time.time() - start_time
+
+print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
+
+print("Feature importances using MDI:\n", mdi_importances)
 
 """
 #BLOCO DE CÓDIGO PARA FAZER O XGBoost
@@ -84,6 +99,6 @@ output = pd.DataFrame(columns=['RowId', 'Result'])
 
 # Save predictions to a CSV file
 # Using list comprehension to construct the DataFrame more efficiently
-output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui está mudado para test_predictions_text por causa do decoding da label
+output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui podemos mudar para test_predictions_text por causa do decoding da label
   
 output.to_csv('test_predictions.csv', index=False)
