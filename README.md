@@ -1,5 +1,5 @@
 # Public repository to develop the Group Pratical Work of Dados e Aprendizagem Automática
-## Univerisdade do Minho 
+## Universidade do Minho 
 ## 2024/2025
 ### Introduction
 For this assignment, two datasets were created (Table 2), each representing the extraction of radiomic features from
