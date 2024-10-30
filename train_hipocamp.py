@@ -20,6 +20,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
+from sklearn.preprocessing import LabelEncoder
 
 #Import training dataset
 df_train = pd.read_csv('train_radiomics_hipocamp.csv')
@@ -44,10 +45,11 @@ df_test.drop(df_test.select_dtypes(include=object), axis = 1, inplace = True)
 #print(df_train.duplicated().any())
 
 X = df_train.drop('Transition', axis = 1)
-y = df_train['Transition'] 
+y = df_train['Transition']
 
+""" BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
-"""
+
 rf_model = RandomForestClassifier(bootstrap= False, max_depth = 2, verbose = 1)
 rf_model.fit(X_train, y_train)
 
@@ -56,7 +58,14 @@ print("Accuracy: %.2f%%" % (rf_score*100))
 
 test_predictions = rf_model.predict(df_test)
 """
-xgb_model = XGBClassifier(max_depth = 1, objecive = 'reg:squarederror')
+
+#Para poder usar o XGBoost nestes dados é preciso fazer primeiro label encoding da variável y
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size = 0.3, random_state=2022)
+
+xgb_model = XGBClassifier(max_depth = 1, objective = 'multi:softmax')
 xgb_model.fit(X_train, y_train)
 
 xgb_score = xgb_model.score(X_test, y_test)
@@ -64,57 +73,7 @@ print("Accuracy: %.2f%%" % (xgb_score * 100))
 
 test_predictions = xgb_model.predict(df_test)
 
-#Daqui para baixo não mexer
-
-output = pd.DataFrame(columns=['RowId', 'Result'])
-
-# Save predictions to a CSV file
-# Using list comprehension to construct the DataFrame more efficiently
-output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions})
-  
-output.to_csv('test_predictions.csv', index=False)
-#Import training dataset
-df_train = pd.read_csv('train_radiomics_hipocamp.csv')
-
-#Import test dataset 
-df_test = pd.read_csv('test_radiomics_hipocamp.csv')
-
-pd.set_option('display.max_columns',None)
-
-print(df_train.dtypes)
-
-df_train.drop(df_train.select_dtypes(include='object').drop(columns=['Transition'], errors='ignore').columns, axis=1, inplace=True)
-
-df_test.drop(df_test.select_dtypes(include=object), axis = 1, inplace = True) 
-
-#print(df_train.dtypes)
-
-#print(df_train.describe())
-
-#print(df_train.isnull().any)
-
-#print(df_train.duplicated().any())
-
-X = df_train.drop('Transition', axis = 1)
-y = df_train['Transition'] 
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
-"""
-rf_model = RandomForestClassifier(bootstrap= False, max_depth = 2, verbose = 1)
-rf_model.fit(X_train, y_train)
-
-rf_score = rf_model.score(X_test, y_test)
-print("Accuracy: %.2f%%" % (rf_score*100))
-
-test_predictions = rf_model.predict(df_test)
-"""
-xgb_model = XGBClassifier(max_depth = 1, objecive = 'reg:squarederror')
-xgb_model.fit(X_train, y_train)
-
-xgb_score = xgb_model.score(X_test, y_test)
-print("Accuracy: %.2f%%" % (xgb_score * 100))
-
-test_predictions = xgb_model.predict(df_test)
+test_predictions_text = label_encoder.inverse_transform(test_predictions)
 
 #Daqui para baixo não mexer
 
@@ -122,6 +81,6 @@ output = pd.DataFrame(columns=['RowId', 'Result'])
 
 # Save predictions to a CSV file
 # Using list comprehension to construct the DataFrame more efficiently
-output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions})
+output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions_text}) #ATENÇÃO aqui está mudado para test_predictions_text por causa do decoding da label
   
 output.to_csv('test_predictions.csv', index=False)
