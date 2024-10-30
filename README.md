@@ -10,7 +10,7 @@ will demonstrate differences that will consequently support delineating patients
 those who won’t.
 ### Delivery Due Dates:
 * 27 de Novembro - 1º checkpoint
-* 21 de Janeiro - Entrega final
+* 21 de Janeiro - Final Delivery
 ### Delivery and Assessment
 The results obtained should be the subject of a report, limited to 20 pages, which presents, among other things:
 * The areas to be tackled, the objectives and how it is proposed to achieve them;
