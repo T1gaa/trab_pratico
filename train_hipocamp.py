@@ -47,7 +47,7 @@ df_test.drop(df_test.select_dtypes(include=object), axis = 1, inplace = True)
 X = df_train.drop('Transition', axis = 1)
 y = df_train['Transition']
 
-""" BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
+#BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
 
 rf_model = RandomForestClassifier(bootstrap= False, max_depth = 2, verbose = 1)
@@ -57,8 +57,10 @@ rf_score = rf_model.score(X_test, y_test)
 print("Accuracy: %.2f%%" % (rf_score*100))
 
 test_predictions = rf_model.predict(df_test)
-"""
 
+
+"""
+#BLOCO DE CÓDIGO PARA FAZER O XGBoost
 #Para poder usar o XGBoost nestes dados é preciso fazer primeiro label encoding da variável y
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
@@ -74,6 +76,7 @@ print("Accuracy: %.2f%%" % (xgb_score * 100))
 test_predictions = xgb_model.predict(df_test)
 
 test_predictions_text = label_encoder.inverse_transform(test_predictions)
+"""
 
 #Daqui para baixo não mexer
 
@@ -81,6 +84,6 @@ output = pd.DataFrame(columns=['RowId', 'Result'])
 
 # Save predictions to a CSV file
 # Using list comprehension to construct the DataFrame more efficiently
-output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions_text}) #ATENÇÃO aqui está mudado para test_predictions_text por causa do decoding da label
+output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui está mudado para test_predictions_text por causa do decoding da label
   
 output.to_csv('test_predictions.csv', index=False)
