@@ -1,3 +1,7 @@
 https://radiopaedia.org/articles/alzheimer-disease-1?lang=us - Na parte do artigo "MRI" referem os indicadores mais importantes da doença Alzheimer nas ressonâncias magnéticas
 
 https://radiopaedia.org/cases/brain-lobes-annotated-mri-1 - Brain CT scan annotated
+
+https://pyradiomics.readthedocs.io/en/latest/features.html - lista de filtros na secção image types
+
+https://pyradiomics.readthedocs.io/en/latest/features.html - explicação das features
