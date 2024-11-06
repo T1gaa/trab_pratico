@@ -12,6 +12,14 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 import shap
 import time
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest,chi2
+from sklearn.pipeline import Pipeline
 
 
 #Import training dataset
@@ -39,7 +47,7 @@ df_test.drop(df_test.select_dtypes(include=object), axis = 1, inplace = True)
 X = df_train.drop('Transition', axis = 1)
 y = df_train['Transition']
 
-#BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
+"""# BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
 
 
@@ -61,10 +69,17 @@ elapsed_time = time.time() - start_time
 
 print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
 
-print("Feature importances using MDI:\n", mdi_importances)
+count = 0
 
+for feature_name, mdi_importance in mdi_importances.items():
+    if mdi_importance > 0.000:
+        print(f"Feature name {feature_name}: {mdi_importance:.4f}")
+        count += 1
+print(f"Total features with importance bigger than 0.000: {count}")
 """
-#BLOCO DE CÓDIGO PARA FAZER O XGBoost
+
+
+"""# BLOCO DE CÓDIGO PARA FAZER O XGBoost
 #Para poder usar o XGBoost nestes dados é preciso fazer primeiro label encoding da variável y
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
@@ -80,6 +95,23 @@ print("Accuracy: %.2f%%" % (xgb_score * 100))
 test_predictions = xgb_model.predict(df_test)
 
 test_predictions_text = label_encoder.inverse_transform(test_predictions)
+
+#XGBOOST FEATURE IMPORTANCE
+start_time = time.time()
+
+mdi_importances = pd.Series(xgb_model.feature_importances_, index=X_test.columns)
+
+elapsed_time = time.time() - start_time
+
+print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
+
+count = 0
+
+for feature_name, mdi_importance in mdi_importances.items():
+    if mdi_importance > 0.000:
+        print(f"Feature name {feature_name}: {mdi_importance:.4f}")
+        count += 1
+print(f"Total features with importance bigger than 0.000: {count}")
 """
 
 #Daqui para baixo não mexer
@@ -88,6 +120,6 @@ output = pd.DataFrame(columns=['RowId', 'Result'])
 
 # Save predictions to a CSV file
 # Using list comprehension to construct the DataFrame more efficiently
-output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui podemos mudar para test_predictions_text por causa do decoding da label
+output = pd.DataFrame({'RowId': range(1, len(test_predictions_text) +1), 'Result': test_predictions_text}) #ATENÇÃO aqui podemos mudar para test_predictions_text por causa do decoding da label
   
 output.to_csv('test_predictions.csv', index=False)
