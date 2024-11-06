@@ -12,15 +12,6 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder
 import shap
 import time
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import SelectKBest,chi2
-from sklearn.pipeline import Pipeline
-
 
 #Import training dataset
 df_train = pd.read_csv('train_radiomics_hipocamp.csv')
