@@ -4,13 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import preprocessing
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score, classification_report
+from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, precision_score
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
 import shap
@@ -31,15 +31,41 @@ def data_analysis(df_train, df_test):
 
 def random_forest_classifier(X, y, df_test):
     # BLOCO DE CÓDIGO PARA FAZER O RANDOMFORESTCLASSIFFIER
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=2022)
-
-    rf_model = RandomForestClassifier(bootstrap= False, max_depth = 2, verbose = 1)
+    print('Splitting values...')
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.327, random_state=2022)
+    
+    print('Training using RandomForestClassifier...')
+    rf_model = RandomForestClassifier(
+        bootstrap= True, #best bootstrap= True
+        max_depth = 10, #best max_depth=
+        n_estimators= 100, #best n_estimators = 
+        min_samples_split= 2, #best min_samples_split = 
+        min_samples_leaf= 2, #best min_samples_leaf = 
+        max_features= 'sqrt', #best max_features = 
+        criterion='gini', #best criterion= 
+        verbose = 1)
+    
+    print('Fitting the values...')
     rf_model.fit(X_train, y_train)
 
-    rf_score = rf_model.score(X_test, y_test)
-    print("Accuracy: %.2f%%" % (rf_score*100))
-
     test_predictions = rf_model.predict(df_test)
+    
+    rf_score = rf_model.score(X_test, test_predictions)
+    print("Accuracy: %.2f%%" % (rf_score*100))
+    
+    print('Precision score:')
+    precision = precision_score(y_true = y_test, y_pred = test_predictions, average='macro')
+    print(precision)
+
+    # Print evaluation metrics
+    print("\nModel Performance on Test Set:")
+    print("-----------------------------")
+    print("\nClassification Report:")
+    print(classification_report(y_test, test_predictions))
+    
+    print('Precision scores: ')
+    precision_scores = cross_val_score(rf_model, X, y, cv=5, scoring='accuracy')
+    print(f"Average precision: {precision_scores.mean():.3f} (+/- {precision_scores.std() * 2:.3f})")
 
     #RANDOM FOREST FEATURE IMPORTANCE
     start_time = time.time()
@@ -54,7 +80,7 @@ def random_forest_classifier(X, y, df_test):
 
     for feature_name, mdi_importance in mdi_importances.items():
         if mdi_importance > 0.000:
-            print(f"Feature name {feature_name}: {mdi_importance:.4f}")
+            #print(f"Feature name {feature_name}: {mdi_importance:.4f}")
             count += 1
     print(f"Total features with importance bigger than 0.000: {count}")
     
@@ -90,8 +116,8 @@ def xgboost(X,y, df_test):
     xgb_model.fit(X_train, y_train, eval_set=[(X_test, y_test)],verbose=1)
 
     print('Predicting results...')
-    y_pred = xgb_model.predict(X_test)
-    y_pred_proba = xgb_model.predict_proba(X_test)
+    y_pred = xgb_model.predict(df_test)
+    y_pred_proba = xgb_model.predict_proba(df_test)
 
     # Print evaluation metrics
     print("\nModel Performance on Test Set:")
@@ -179,11 +205,11 @@ def main():
     print('Creating y variable...')
     y = df_train['Transition']
 
-    #print('Applying Random Forest Classifier model to the train dataset...')
-    #test_predictions = random_forest_classifier(X, y, df_test)
+    print('Applying Random Forest Classifier model to the train dataset...')
+    test_predictions = random_forest_classifier(X, y, df_test)
     
-    print('Applying XGBoost model to the train dataset...')
-    test_predictions = xgboost(X, y, df_test)
+    #print('Applying XGBoost model to the train dataset...')
+    #test_predictions = xgboost(X, y, df_test)
     
     output = pd.DataFrame(columns=['RowId', 'Result'])
 
