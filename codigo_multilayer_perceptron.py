@@ -159,7 +159,7 @@ class MLP_1(Module):
         kaiming_uniform_(self.hidden2.weight, nonlinearity ='relu') # He initialization
         self.act2 = ReLU()
         #3rd layer
-        self.hidden3 = Linear(12, 4) #one node for the predicted value output, also second value is number of classes to predict
+        self.hidden3 = Linear(12, 5) #one node for the predicted value output, also second value is number of classes to predict
         xavier_uniform_(self.hidden3.weight) #GLorot initialization
         self.act3 = Softmax(dim=1) #softmax since it is multiclass
         
