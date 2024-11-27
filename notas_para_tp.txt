@@ -1,0 +1,6 @@
+Retirar features pela sua importance? Melhor abordagem será construir vários datasets, um após o outro utilizar gridsearch neles e comparar resultados.
+Class imbalancing - Fazer o que está abaixo
+Diferença de resultados semana para semana - Melhor abordagem será fazer GridSearchCV para perceber os melhores Hyperparameters.
+Não mexer nos Hyperparameters que subsample e colsample, pois esses introduzem randomização,
+e verificar se o XGBoost e o RandomForesClassifier recebem como parametro o random_state = 
+Multilayer perceptron labels estão encoded de forma diferente dos outputs.
