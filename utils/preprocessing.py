@@ -16,9 +16,9 @@ def createBoundingBoxFeatures(df):
     df['new_bbox_x_center'] = (df['x_min'] + df['x_max']) / 2
     df['new_bbox_y_center'] = (df['y_min'] + df['y_max']) / 2
     df['new_bbox_z_center'] = (df['z_min'] + df['z_max']) / 2
-    df['new_bbox_aspect_ratio_xy'] = df['width'] / df['height']
-    df['new_bbox_aspect_ratio_xz'] = df['width'] / df['depth']
-    df['new_bbox_aspect_ratio_yz'] = df['height'] / df['depth']
+   # df['new_bbox_aspect_ratio_xy'] = df['width'] / df['height']
+   # df['new_bbox_aspect_ratio_xz'] = df['width'] / df['depth']
+   # df['new_bbox_aspect_ratio_yz'] = df['height'] / df['depth']
     df['new_bbox_diagonal'] = np.sqrt((df['x_max'] - df['x_min'])**2 + 
                          (df['y_max'] - df['y_min'])**2 + 
                          (df['z_max'] - df['z_min'])**2)
@@ -42,10 +42,13 @@ def createCenterOfMassFeatures(df):
     df.drop(['x','y','z','diagnostics_Mask-original_CenterOfMassIndex'],axis=1,inplace=True)
     return df
 
-def preprocessingV1(df):
+def preprocessingV1(df, splitY = True):
 
-    y = df['Transition']
-    X = df.drop('Transition', axis = 1)
+    if splitY:
+        y = df['Transition']
+        X = df.drop('Transition', axis = 1)
+    else:
+        X = df
 
     ## Dealing with object features
     # Experiment new features
@@ -58,7 +61,10 @@ def preprocessingV1(df):
     features_without_variance = X.columns[X.nunique()==1].to_list()
     X.drop(columns=features_without_variance, axis=1, inplace = True)
 
-    return X,y
+    if splitY:
+        return X,y
+    else:
+        return X
 
 
     
