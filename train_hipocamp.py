@@ -203,7 +203,7 @@ def xgboost(X,y, df_test):
     print('Computing feature importances...')
     start_time = time.time()
 
-    mdi_importances = pd.Series(best_model.feature_importances_, index=X_test.columns)
+    mdi_importances = pd.Series(best_model.feature_importances_, index=best_model.columns)
 
     elapsed_time = time.time() - start_time
 
@@ -266,11 +266,11 @@ def main():
     
     #Import training dataset
     print('Importing train dataset...')
-    df_train = pd.read_csv('train_radiomics_hipocamp.csv')
+    df_train = pd.read_csv('datasets/train_radiomics_hipocamp.csv')
 
     #Import test dataset
     print('Importing test dataset...')
-    df_test = pd.read_csv('test_radiomics_hipocamp.csv')
+    df_test = pd.read_csv('datasets/test_radiomics_hipocamp.csv')
     
     print('Dropping all features that are type object except Transition from train dataset...')
     df_train.drop(df_train.select_dtypes(include='object').drop(columns=['Transition'], errors='ignore').columns, axis=1, inplace=True)
