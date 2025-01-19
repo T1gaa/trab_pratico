@@ -6,12 +6,14 @@ import seaborn as sns
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, RandomizedSearchCV
 from sklearn import metrics
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, precision_score
+from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, precision_score, confusion_matrix
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
+from utils.modelization import saveModel,loadModel,submitModel
 import shap
 import time
 from scipy.stats import uniform, randint
@@ -192,75 +194,77 @@ def xgboost(X,y, df_test):
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred, zero_division= 1))
 
-    test_predictions = best_model.predict(df_test)
+    test_predictions = best_model.predict(X_test)
 
     #Avaliação do model nos dados de teste
-    test_predictions = best_model.predict(df_test)
+    test_predictions = best_model.predict(X_test)
     accuracy = accuracy_score(y_test, test_predictions)
-    print(f"Test Accuracy: {accuracy:.2f}")
-    
-    #XGBOOST FEATURE IMPORTANCE
-    print('Computing feature importances...')
-    start_time = time.time()
 
-    mdi_importances = pd.Series(best_model.feature_importances_, index=best_model.columns)
-
-    elapsed_time = time.time() - start_time
-
-    print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
-
-    count = 0
-
-    features_to_drop = []
-    
-    for feature_name, mdi_importance in mdi_importances.items():
-        if mdi_importance < 0.00:
-            #print(f"Feature name {feature_name}: {mdi_importance:.4f}")
-            count += 1         
-            features_to_drop.append(feature_name)
-    print(f"Total features with importance lower than 0.000: {count}")
-    
-    print('Build second dataset using the most important features...')
-    X2 = X.drop(columns = features_to_drop)
-    dftest2 = df_test.drop(columns = features_to_drop)
-    
-    print("Splitting values into train and test ind the second dataset")
-    X_train, X_test, y_train, y_test = train_test_split(X2, y_encoded, test_size = 0.327, random_state=2022)
-    
-    print('Fitting second model...')
-    best_model.fit(X_train, y_train,verbose=1)
-    
-    print('Predicting results...')
-    y_pred = best_model.predict(dftest2)
-    y_pred_proba = best_model.predict_proba(dftest2)
-
-    # Print evaluation metrics
-    print("\nModel Performance on Test Set:")
-    print("-----------------------------")
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, zero_division= 1))
-
-    test_predictions = best_model.predict(df_test)
-
-    #Avaliação do model nos dados de teste
-    test_predictions2 = best_model.predict(dftest2)
-    accuracy = accuracy_score(y_test, test_predictions)
-    print(f"Test Accuracy: {accuracy:.2f}")
-    
-    
     #Descodificar as predictions para os labels originais
     print('Decoding predictions to original classes...')
     test_predictions_text = label_encoder.inverse_transform(test_predictions)
     
-    #Descodificar as predictions para os labels originais
-    print('Decoding predictions to original classes...')
-    test_predictions_text2 = label_encoder.inverse_transform(test_predictions2)
-    
-    return test_predictions_text, test_predictions_text2
+    return test_predictions_text
 
-def svm(X, y, df_test):
-    #Apply the Support-Vector Machine Model
-    return
+def knn(X, y, df_test):
+    #Apply the KNN Model
+    
+     # Split the data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.327, random_state=2022, stratify=y
+    )
+    
+    # Scale the features
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    # Define parameter grid
+    param_grid = {
+        'n_neighbors': [3, 5, 7, 9, 11, 13, 15],
+        'weights': ['uniform', 'distance'],
+        'metric': ['euclidean', 'manhattan']
+    }
+    
+    # Create KNN classifier
+    knn = KNeighborsClassifier()
+    
+    # Perform grid search
+    grid_search = GridSearchCV(
+        knn, param_grid, cv=5, scoring='accuracy', n_jobs=-1
+    )
+    grid_search.fit(X_train, y_train)
+    
+    print(grid_search.best_params_)
+    
+    best_model = grid_search.best_estimator_
+    
+    # Make predictions
+    y_pred = best_model.predict(X_test)
+    
+    # Calculate metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    class_report = classification_report(y_test, y_pred)
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    
+    # Print results
+    print(f"Model Accuracy: {accuracy:.4f}")
+    print("\nClassification Report:")
+    print(class_report)
+    
+    # Plot confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
+    plt.title('Confusion Matrix')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.show()
+    
+    test_predictions = best_model.predict(df_test)
+      
+    saveModel(best_model,"knn_local_042_submission_03555")
+    
+    return test_predictions
 
 def main():
     
@@ -288,8 +292,11 @@ def main():
     #print('Applying Random Forest Classifier model to the train dataset...')
     #test_predictions = random_forest_classifier(X, y, df_test)
     
-    print('Applying XGBoost model to the train dataset...')
-    test_predictions, test_predictions2 = xgboost(X, y, df_test)
+    #print('Applying XGBoost model to the train dataset...')
+    #test_predictions= xgboost(X, y, df_test)
+    
+    print('Applying KNN model to the train dataset...')
+    test_predictions= knn(X, y, df_test)
     
     output = pd.DataFrame(columns=['RowId', 'Result'])
 
@@ -299,9 +306,6 @@ def main():
     output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui podemos mudar para test_predictions_text por causa do decoding da label
   
     output.to_csv('test_predictions.csv', index=False)
-    
-    output = pd.DataFrame({'RowId': range(1, len(test_predictions2) +1), 'Result': test_predictions2})
-    output.to_csv('test_predictions2.csv', index = False)
     
     
 if __name__ == '__main__':
