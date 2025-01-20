@@ -241,7 +241,11 @@ def knn(X, y, df_test):
     
     # Make predictions
     y_pred = best_model.predict(X_test)
+    y_pred_prob = best_model.predict_proba(X_test)
     
+    # Used in soft_voting
+    saveModel(y_pred_prob,"knn_local_042_submission_03555_test_probabilities")
+
     # Calculate metrics
     accuracy = accuracy_score(y_test, y_pred)
     class_report = classification_report(y_test, y_pred)
@@ -262,7 +266,7 @@ def knn(X, y, df_test):
     
     test_predictions = best_model.predict(df_test)
       
-    saveModel(best_model,"knn_local_042_submission_03555")
+    #saveModel(best_model,"knn_local_042_submission_03555")
     
     return test_predictions
 
@@ -305,7 +309,7 @@ def main():
     print('Saving predictions to the test_predictions.csv...')
     output = pd.DataFrame({'RowId': range(1, len(test_predictions) +1), 'Result': test_predictions}) #ATENÇÃO aqui podemos mudar para test_predictions_text por causa do decoding da label
   
-    output.to_csv('test_predictions.csv', index=False)
+    # output.to_csv('test_predictions.csv', index=False)
     
     
 if __name__ == '__main__':
